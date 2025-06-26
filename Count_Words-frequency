@@ -1,0 +1,88 @@
+#!/bin/bash 
+# De Alexandre N.D.Lins
+# Coloque textos no arquivo Words.txt separados por nome de livros/titulo.
+# Entre um texto e outro coloque --- para o programa saber os limites.
+
+deletar_arquivos(){ 
+[ -e count_lines.txt ] && rm count_lines.txt 
+notas_file=$(ls *.txt | sed 's/Words.txt/ /' | tr -s "\n" " " 2>/dev/null | awk '{print $1}')
+remove_files=$(ls *.txt | sed 's/Words.txt/ /' | tr -s "\n" " ")
+[ ! -z $notas_file ] &&  rm $remove_files 
+[ -e musica_notas2.txt ] && rm musica_notas2.txt 
+[ -e musica_notas3.txt ] && rm musica_notas3.txt 
+[ -e Todas-notas.txt ]  && rm Todas-notas.txt 
+[ -e NOTAS_MAIS_USADAS.txt ] && rm NOTAS_MAIS_USADAS.txt 
+}
+
+deletar_arquivos
+
+Quant_linha_cifra=$(wc -l Words.txt | awk '{print $1}') 
+
+# Todas as notas disponiveis em Words.txt
+while read input ; do 
+     detectar_limites=$(grep '\-\-\-' <<< $input)
+   
+     if [ $? == 1 ] ; then  
+       echo $input >> Todas-notas.txt 
+       # cat Todas-notas.txt  
+      fi  
+done < Words.txt 
+
+# Criar o arquivo de cada nota com a quantidade exata de quantas vezes foi repetida 
+
+while read input ; do 
+  count_caracter=$(wc -w <<< $input) 
+    for seq in $(seq $count_caracter) ; do 
+    # Selecionar letra por letra para analise 
+    letter=$(awk -v number_of_letter=$seq '{print $number_of_letter}' <<< $input) 
+    echo $letter >> $letter.txt
+   done  
+done < Todas-notas.txt
+
+
+# Contar quantas vezes a nota repete
+for files_notes in $(ls *.txt | sed 's/Words.txt/ /' | sed 's/Todas-notas.txt/ /' | tr -s "\n" " ") ; do 
+     wc -l $files_notes | sed "s/.txt/ /" >> count_lines.txt 
+done 
+
+
+# Pegar somente as notas que foram repetidas mais de 2 vezes
+count=0
+ while read line ; do
+  count=$(($count+1))
+    number_de_vezes_da_nota=$(awk '{print $1}' <<< $line)
+
+    # Linha 17 retirada por causa da nota FA não combinar 
+   [ $number_de_vezes_da_nota -gt 2 ] && echo $line >> NOTAS_MAIS_USADAS.txt
+
+done < count_lines.txt
+
+# Quantidade de notas escolhidas: 
+ sort -R NOTAS_MAIS_USADAS.txt | awk '{print $2}' | xargs echo >> musica_notas3.txt
+ quantidade_de_notas_escolhidas=$(wc -w musica_notas3.txt | awk '{print $1}') 
+# --------------------------------------------------
+
+
+  
+echo Digite quantas palavras que você quer que mais repetem no Words.txt, mas que seja divisível por: $quantidade_de_notas_escolhidas
+
+     read input 
+
+     count_notes=$(expr $input / $quantidade_de_notas_escolhidas)  
+
+# Saber em números pares quantas vezes precisa ser executado o loop para ter a quantidade de notas corretas.
+
+       for seq in $(seq $count_notes) ; do 
+
+        # Localizar o que começa com dois dígitos e trocar a ordem da linha de forma aleatória
+
+          sort -R NOTAS_MAIS_USADAS.txt | awk '{print $2}' | xargs echo >> musica_notas2.txt
+ 
+       done 
+# -------------- --------------- ----------------
+
+echo Palavras que mais se repetem em ordem aletória sempre que é executado.
+
+cat musica_notas2.txt 
+
+deletar_arquivos
