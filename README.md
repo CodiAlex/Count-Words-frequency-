@@ -12,3 +12,7 @@ Era uma vez um jovem ...
 Um belo dia ...
 ---
 
+
+Atenção: Este script tem referências de música porque ele foi desenvolvido para outro programa que estou criando para gerar músicas .mid, mas a lógica para o que se propõe aqui é a mesma.
+
+
